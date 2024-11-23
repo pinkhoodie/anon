@@ -49,3 +49,22 @@ export const feedRoutes = createElysia({ prefix: '/feed' })
       }),
     }
   )
+  .get(
+    '/:tokenAddress/tokens',
+    async ({ params }) => {
+      const cached = await redis.get(`tokens:${params.tokenAddress}`)
+      if (cached) {
+        return JSON.parse(cached)
+      }
+
+      const response = await neynar.getUserCasts(TOKEN_CONFIG[params.tokenAddress].fid)
+      const tokenCasts = response.casts.filter(cast => cast.text.includes('@tokenbot'))
+      await redis.set(`tokens:${params.tokenAddress}`, JSON.stringify({ casts: tokenCasts }), 'EX', 30)
+      return { casts: tokenCasts }
+    },
+    {
+      params: t.Object({
+        tokenAddress: t.String(),
+      }),
+    }
+  )

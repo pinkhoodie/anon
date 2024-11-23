@@ -92,4 +92,10 @@ export const api = {
     );
     return response.data;
   },
+  getTokenPosts: async (tokenAddress: string) => {
+    const response = await apiClient.request<GetCastsResponse>(
+      `/feed/${tokenAddress}/tokens`
+    );
+    return response.data;
+  },
 };

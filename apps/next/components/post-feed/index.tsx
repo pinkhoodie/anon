@@ -30,7 +30,7 @@ export default function PostFeed({
   tokenAddress: string
   userAddress?: string
 }) {
-  const [selected, setSelected] = useState<'new' | 'trending'>('trending')
+  const [selected, setSelected] = useState<'new' | 'trending' | 'coins'>('trending')
   const { data: balance } = useBalance(tokenAddress, userAddress)
   const { signMessageAsync } = useSignMessage()
 
@@ -46,6 +46,14 @@ export default function PostFeed({
     queryKey: ['posts', tokenAddress],
     queryFn: async (): Promise<Cast[]> => {
       const response = await api.getNewPosts(tokenAddress)
+      return response?.casts || []
+    },
+  })
+
+  const { data: tokenPosts, isLoading: isTokensLoading } = useQuery({
+    queryKey: ['tokens', tokenAddress],
+    queryFn: async (): Promise<Cast[]> => {
+      const response = await api.getTokenPosts(tokenAddress)
       return response?.casts || []
     },
   })
@@ -84,12 +92,12 @@ export default function PostFeed({
       userAddress={userAddress}
       getSignature={getSignature}
     >
-      <div className="flex flex-col gap-4 ">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-row justify-between">
           <AnimatedTabs
-            tabs={['trending', 'new']}
+            tabs={['trending', 'new', 'tokens']}
             activeTab={selected}
-            onTabChange={(tab) => setSelected(tab as 'new' | 'trending')}
+            onTabChange={(tab) => setSelected(tab as 'new' | 'trending' | 'tokens')}
           />
         </div>
         {selected === 'new' ? (
@@ -100,12 +108,20 @@ export default function PostFeed({
           ) : (
             <h1>Something went wrong. Please refresh the page.</h1>
           )
-        ) : isTrendingLoading ? (
+        ) : selected === 'trending' ? (
+          isTrendingLoading ? (
+            <SkeletonPosts />
+          ) : trendingPosts?.length && trendingPosts?.length > 0 ? (
+            <Posts canDelete={canDelete} canPromote={canPromote} casts={trendingPosts} />
+          ) : (
+            <h1>Something went wrong. Please refresh the page.</h1>
+          )
+        ) : isTokensLoading ? (
           <SkeletonPosts />
-        ) : trendingPosts?.length && trendingPosts?.length > 0 ? (
-          <Posts canDelete={canDelete} canPromote={canPromote} casts={trendingPosts} />
+        ) : tokenPosts?.length && tokenPosts?.length > 0 ? (
+          <Posts canDelete={canDelete} canPromote={canPromote} casts={tokenPosts} />
         ) : (
-          <h1>Something went wrong. Please refresh the page.</h1>
+          <h1>No token posts found.</h1>
         )}
       </div>
     </PostProvider>
