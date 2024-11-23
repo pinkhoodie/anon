@@ -51,7 +51,7 @@ export default function PostFeed({
   })
 
   const { data: tokenPosts, isLoading: isTokensLoading } = useQuery({
-    queryKey: ['tokens', tokenAddress],
+    queryKey: ['coins', tokenAddress],
     queryFn: async (): Promise<Cast[]> => {
       const response = await api.getTokenPosts(tokenAddress)
       return response?.casts || []
@@ -95,9 +95,9 @@ export default function PostFeed({
       <div className="flex flex-col gap-4">
         <div className="flex flex-row justify-between">
           <AnimatedTabs
-            tabs={['trending', 'new', 'tokens']}
+            tabs={['trending', 'new', 'coins']}
             activeTab={selected}
-            onTabChange={(tab) => setSelected(tab as 'new' | 'trending' | 'tokens')}
+            onTabChange={(tab) => setSelected(tab as 'new' | 'trending' | 'coins')}
           />
         </div>
         {selected === 'new' ? (
